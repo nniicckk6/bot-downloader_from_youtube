@@ -38,15 +38,17 @@ def create_video(url):
     video_ext = info_dict.get('ext', 'mp4')
 
     # Полный путь к скачанному видео
-    path = f'videos/{video_title}.{video_ext}'  
+    original_path = f'videos/{video_title}.{video_ext}'  
+    new_path = f'videos/{video_title}_.{video_ext}'  # Путь с заменой '?'
 
-    # Проверяем, существует ли файл
-    if os.path.exists(path):
-        video = open(path, 'rb')
-        return video, path  # Возвращаем путь к видео
+    # Переименовываем файл, если нужно
+    if os.path.exists(original_path):
+        os.rename(original_path, new_path)
+        video = open(new_path, 'rb')
+        return video, new_path  # Возвращаем новый путь к видео
     else:
-        writes_logs(f"Файл не найден: {path}")
-        return None, path
+        writes_logs(f"Файл не найден: {original_path}")
+        return None, original_path
 
 def delete_all_videos_in_directory():
     """Удаляет все скаченные видео из папки 'videos'"""
