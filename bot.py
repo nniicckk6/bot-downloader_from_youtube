@@ -55,9 +55,14 @@ def send_welcome(message):
 @bot.message_handler(content_types=['text'])
 def get_files(message):
     """Ждёт от пользователя ссылку на ютуб плейлист или видео и начинает его скачивать, и отравляет пользователю"""
-
+    # Логируем ссылку для отладки
+    writes_logs(f"Получена ссылка: {message.text}")
+    
     if re.match(r'https://www\.youtube\.com/playlist\?list=', message.text):
         # Для плейлиста
+        bot.send_message(message.chat.id, "Начинаю обработку плейлиста...")
+        writes_logs("Начинается обработка плейлиста")
+        
         playlist = Playlist(message.text)
 
         for url in playlist.video_urls:
@@ -69,9 +74,11 @@ def get_files(message):
                 writes_logs(_ex)
                 bot.send_message(message.chat.id, f"Ошибка при скачивании видео: {_ex}")
         bot.send_message(message.chat.id, "Плейлист успешно скачан и отправлен.")
-
     elif re.match(r'(https://www\.youtube\.com/watch\?v=|https://youtu\.be/)', message.text):
         # Для видео
+        bot.send_message(message.chat.id, "Начинаю обработку видео...")
+        writes_logs("Начинается обработка видео")
+        
         try:
             url = message.text
             audio = create_audio(url)
@@ -80,6 +87,9 @@ def get_files(message):
         except Exception as _ex:
             writes_logs(_ex)
             bot.send_message(message.chat.id, f"Ошибка при скачивании видео: {_ex}")
+    else:
+        bot.send_message(message.chat.id, "Не удалось распознать ссылку. Пожалуйста, проверьте её корректность.")
+        writes_logs(f"Не удалось распознать ссылку: {message.text}")
 
 
 delete_all_music_in_directory()
