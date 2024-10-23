@@ -1,3 +1,4 @@
+# System
 import re
 import os
 import datetime
@@ -19,29 +20,23 @@ def writes_logs(_ex):
     with open('logs.log', 'a') as file_log:
         file_log.write('\n' + str(datetime.datetime.now()) + ': ' + str(_ex))
 
-def clean_filename(filename):
-    """Очищает имя файла от нежелательных символов"""
-    return re.sub(r'[<>:"/\\|?*]', '_', filename)
-
 def create_video(url):
     ydl_opts = {
-        'format': 'best',  # Выбор наилучшего качества
+        'format': 'bestvideo+bestaudio/best',  # Выбор наилучшего качества
         'outtmpl': 'videos/%(title)s.%(ext)s',  # Шаблон для имени файла
-        'noplaylist': True,  # Не скачивать плейлист, если ссылка на видео
+        'merge_output_format': 'mp4',  # Слияние аудио и видео в mp4
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        # Скачиваем видео
         ydl.download([url])
-        # Получаем информацию о скачанном видео
+        # Получаем имя последнего скачанного файла
         info_dict = ydl.extract_info(url, download=False)
-        title = clean_filename(info_dict.get('title', 'video'))
-        ext = info_dict.get('ext', 'mp4')
-        path = os.path.join('videos', f"{title}.{ext}")
+        video_title = info_dict.get('title', None)
+        video_ext = info_dict.get('ext', 'mp4')
+        path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
 
-    # Открываем файл на чтение
     video = open(path, 'rb')
-    return video
+    return video, path  # Возвращаем путь к видео
 
 def delete_all_videos_in_directory():
     """Удаляет все скаченные видео из папки 'videos'"""
