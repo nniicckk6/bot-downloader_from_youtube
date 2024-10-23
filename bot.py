@@ -35,15 +35,15 @@ def create_video(url):
 
     # Проверяем, успешно ли получена информация
     video_title = clean_filename(info_dict.get('title', 'video'))
-    video_ext = info_dict.get('ext', 'mp4')
+    video_ext = 'mp4'  # Устанавливаем фиксированное расширение mp4
 
     # Полный путь к скачанному видео
     original_path = f'videos/{video_title}.{video_ext}'  
-    new_path = f'videos/{video_title}_.{video_ext}'  # Путь с заменой '?'
+    new_path = f'videos/{video_title}_.{video_ext}'  # Новый путь с заменой '?'
 
     # Переименовываем файл, если нужно
     if os.path.exists(original_path):
-        os.rename(original_path, new_path)
+        os.rename(original_path, new_path)  # Переименовываем в новый путь
         video = open(new_path, 'rb')
         return video, new_path  # Возвращаем новый путь к видео
     else:
