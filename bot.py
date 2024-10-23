@@ -28,6 +28,7 @@ def rename_files_in_directory():
             original_path = os.path.join('videos', filename)
             new_path = os.path.join('videos', new_name)
             os.rename(original_path, new_path)  # Переименовываем файл
+            return new_path
 
 def create_video(url):
     ydl_opts = {
@@ -41,16 +42,16 @@ def create_video(url):
         ydl.download([url])
 
     # Переименовываем файлы после загрузки
-    rename_files_in_directory()
+#    rename_files_in_directory()
 
     # Получаем информацию о скачанном видео
-    info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False)
+#    info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False)
 
-    video_title = clean_filename(info_dict.get('title', 'video'))
-    video_ext = 'mp4'  # Устанавливаем фиксированное расширение mp4
+#    video_title = clean_filename(info_dict.get('title', 'video'))
+#    video_ext = 'mp4'  # Устанавливаем фиксированное расширение mp4
 
     # Полный путь к скачанному видео
-    new_path = f'videos/{video_title}_.{video_ext}'  # Новый путь с заменой '?'
+    new_path = rename_files_in_directory()  # Новый путь с заменой '?'
 
     # Проверяем, существует ли файл с новым именем
     if os.path.exists(new_path):
@@ -93,7 +94,6 @@ def get_files(message):
             try:
                 video, path = create_video(url)
                 if video:
-                    # Отправляем как видео
                     bot.send_video(message.chat.id, video)
                     video.close()  # Закрываем файл
                     os.remove(path)  # Удаляем файл после отправки
@@ -113,7 +113,6 @@ def get_files(message):
             url = message.text
             video, path = create_video(url)
             if video:
-                # Отправляем как видео
                 bot.send_video(message.chat.id, video)
                 video.close()  # Закрываем файл
                 os.remove(path)  # Удаляем файл после отправки
