@@ -27,14 +27,15 @@ def create_video(url):
         yt = YouTube(url)
         writes_logs(f"Заголовок видео: {yt.title}")
 
-        streams = yt.streams.filter(progressive=True, file_extension='mp4', resolution='720p').order_by('resolution')
-        
-        # Проверка наличия потоков
+        # Получение потоков
+        streams = yt.streams.filter(progressive=True, file_extension='mp4')
+
         if not streams:
             writes_logs(f"Ошибка: отсутствуют доступные потоки для видео {url}")
             return None
-        
-        video = streams[-1]  # Выбор последнего потока
+
+        # Отбор потоков по разрешению, если вы хотите 720p, но это может быть не обязательно
+        video = streams.get_highest_resolution()  # Получаем поток с самым высоким разрешением
         writes_logs(f"Выбранный поток: {video}")
 
         path = video.download("videos")
