@@ -24,18 +24,8 @@ def writes_logs(_ex):
 def create_video(url):
     """Скачивает видео и открывает файл на бинарное чтение"""
     try:
-        yt = YouTube(url)
-        writes_logs(f"Доступные потоки: {yt.streams}")
-        
-        # Выбираем первый прогрессивный поток (с видео и аудио)
-        video_stream = yt.streams.filter(progressive=True, file_extension='mp4').first()
-        
-        if not video_stream:
-            writes_logs("Ошибка: не удалось найти подходящий поток видео")
-            return None
-        
-        writes_logs(f"Выбранный поток: {video_stream}")
-        path = video_stream.download("videos")  # Скачиваем видео в папку 'videos'
+        yt = YouTube(url).streams.filter(progressive=True, file_extension='mp4').first()
+        path = yt.download("videos")  # Скачиваем видео в папку 'videos'
         video = open(path, 'rb')  # Открываем файл на чтение
         return video
     except Exception as _ex:
