@@ -42,24 +42,14 @@ def create_video(url):
         ydl.download([url])
 
     # Переименовываем файлы после загрузки
-#    rename_files_in_directory()
-
-    # Получаем информацию о скачанном видео
-#    info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False)
-
-#    video_title = clean_filename(info_dict.get('title', 'video'))
-#    video_ext = 'mp4'  # Устанавливаем фиксированное расширение mp4
-
-    # Полный путь к скачанному видео
     new_path = rename_files_in_directory()  # Новый путь с заменой '?'
 
     # Проверяем, существует ли файл с новым именем
     if os.path.exists(new_path):
-        video = open(new_path, 'rb')
-        return video, new_path  # Возвращаем новый путь к видео
+        return new_path  # Возвращаем новый путь к видео
     else:
         writes_logs(f"Файл не найден: {new_path}")
-        return None, new_path
+        return None
 
 def delete_all_videos_in_directory():
     """Удаляет все скаченные видео из папки 'videos'"""
@@ -92,10 +82,11 @@ def get_files(message):
 
         for url in playlist.video_urls:
             try:
-                video, path = create_video(url)
-                if video:
-                    bot.send_video(message.chat.id, video)
-                    video.close()  # Закрываем файл
+                path = create_video(url)
+                if path:
+                    # Отправляем как видео
+                    with open(path, 'rb') as video:
+                        bot.send_video(message.chat.id, video)
                     os.remove(path)  # Удаляем файл после отправки
                 else:
                     bot.send_message(message.chat.id, "Не удалось скачать видео.")
@@ -111,10 +102,11 @@ def get_files(message):
 
         try:
             url = message.text
-            video, path = create_video(url)
-            if video:
-                bot.send_video(message.chat.id, video)
-                video.close()  # Закрываем файл
+            path = create_video(url)
+            if path:
+                # Отправляем как видео
+                with open(path, 'rb') as video:
+                    bot.send_video(message.chat.id, video)
                 os.remove(path)  # Удаляем файл после отправки
             else:
                 bot.send_message(message.chat.id, "Не удалось скачать видео.")
