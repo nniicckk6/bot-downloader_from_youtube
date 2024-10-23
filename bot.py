@@ -84,9 +84,9 @@ def get_files(message):
             try:
                 path = create_video(url)
                 if path:
-                    # Отправляем как видео
+                    # Отправляем как документ
                     with open(path, 'rb') as video:
-                        bot.send_video(message.chat.id, video)
+                        bot.send_document(message.chat.id, video)
                     os.remove(path)  # Удаляем файл после отправки
                 else:
                     bot.send_message(message.chat.id, "Не удалось скачать видео.")
@@ -104,7 +104,7 @@ def get_files(message):
             url = message.text
             path = create_video(url)
             if path:
-                # Отправляем как видео
+                # Отправляем как документ
                 with open(path, 'rb') as video:
                     bot.send_document(message.chat.id, video)
                 os.remove(path)  # Удаляем файл после отправки
