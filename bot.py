@@ -27,23 +27,18 @@ def create_video(url):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        # Получаем информацию о скачанном видео
-        info_dict = ydl.extract_info(url, download=False)
-        
-        # Проверяем, успешно ли получена информация
-        if 'title' not in info_dict or 'ext' not in info_dict:
-            writes_logs(f"Не удалось получить информацию о видео: {url}")
-            return None, None
-        
-        video_title = clean_filename(info_dict['title'])
-        video_ext = info_dict['ext']
-
-        # Заменяем имя файла перед скачиванием
-        path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
-        ydl_opts['outtmpl'] = path  # Обновляем путь в опциях для загрузки
-
         # Загружаем видео
         ydl.download([url])
+        
+        # Получаем информацию о скачанном видео
+        info_dict = ydl.extract_info(url, download=False)
+
+        # Проверяем, успешно ли получена информация
+        video_title = clean_filename(info_dict.get('title', 'video'))
+        video_ext = info_dict.get('ext', 'mp4')
+
+        # Заменяем имя файла после скачивания
+        path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
 
     # Проверяем, существует ли файл
     if os.path.exists(path):
