@@ -26,10 +26,11 @@ def create_audio(url):
     try:
         yt = YouTube(url).streams.filter(only_audio=True).first()
         path = yt.download("music")
-        audio = open(path, 'rb')
-        return audio
+        with open(path, 'rb') as audio:
+            return audio
     except Exception as _ex:
         writes_logs(_ex)
+        return None
 
 
 def delete_all_music_in_directory():
@@ -55,27 +56,30 @@ def send_welcome(message):
 def get_files(message):
     """Ждёт от пользователя ссылку на ютуб плейлист или видео и начинает его скачивать, и отравляет пользователю"""
 
-    if message.text[:38] == 'https://www.youtube.com/playlist?list=':
+    if re.match(r'https://www\.youtube\.com/playlist\?list=', message.text):
         # Для плейлиста
         playlist = Playlist(message.text)
 
-        for url in playlist:
+        for url in playlist.video_urls:
             try:
                 audio = create_audio(url)
-                bot.send_audio(message.chat.id, audio)
+                if audio:
+                    bot.send_audio(message.chat.id, audio)
             except Exception as _ex:
                 writes_logs(_ex)
-        else:
-            bot.send_message(message.chat.id, "Плейлист закрыт")
+                bot.send_message(message.chat.id, f"Ошибка при скачивании видео: {_ex}")
+        bot.send_message(message.chat.id, "Плейлист успешно скачан и отправлен.")
 
-    elif message.text[:32] == 'https://www.youtube.com/watch?v=' or message.text[:17] == 'https://youtu.be/':
+    elif re.match(r'(https://www\.youtube\.com/watch\?v=|https://youtu\.be/)', message.text):
         # Для видео
         try:
             url = message.text
             audio = create_audio(url)
-            bot.send_audio(message.chat.id, audio)
+            if audio:
+                bot.send_audio(message.chat.id, audio)
         except Exception as _ex:
             writes_logs(_ex)
+            bot.send_message(message.chat.id, f"Ошибка при скачивании видео: {_ex}")
 
 
 delete_all_music_in_directory()
