@@ -8,7 +8,7 @@ from config import TOKEN
 import telebot
 from pytube import YouTube
 from pytube import Playlist
-import ytdlp
+import yt_dlp
 
 # Token in config.py
 token = TOKEN
