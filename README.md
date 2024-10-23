@@ -9,7 +9,7 @@
 * Клонировать репозиторий:
 
 ```
-git clone https://github.com/vadushkin/bot-downloader_from_youtube.git
+git clone https://github.com/nniicckk6/bot-downloader_from_youtube.git
 ```
 
 * Перейти в репозиторий:
