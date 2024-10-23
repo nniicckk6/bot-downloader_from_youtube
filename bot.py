@@ -6,10 +6,13 @@ from config import TOKEN
 
 # Add app
 import telebot
+from pytube import YouTube
+from pytube import Playlist
 import yt_dlp
 
 # Token in config.py
 token = TOKEN
+
 bot = telebot.TeleBot(token)
 
 def writes_logs(_ex):
@@ -18,22 +21,22 @@ def writes_logs(_ex):
         file_log.write('\n' + str(datetime.datetime.now()) + ': ' + str(_ex))
 
 def create_video(url):
-    """Скачивает видео и возвращает файл на бинарное чтение"""
     ydl_opts = {
-        'format': 'best',  # Выбор наилучшего качества
+        'format': 'bestvideo+bestaudio/best',  # Выбор наилучшего качества
         'outtmpl': 'videos/%(title)s.%(ext)s',  # Шаблон для имени файла
+        'merge_output_format': 'mp4',  # Слияние аудио и видео в mp4
     }
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            video_title = info_dict.get('title', None)
-            video_file_path = os.path.join('videos', f"{video_title}.mp4")  # Путь к файлу видео
-            writes_logs(f"Скачано видео: {video_title}")
-            return open(video_file_path, 'rb')  # Открываем файл на чтение
-    except Exception as _ex:
-        writes_logs(f"Ошибка при создании видео: {url} - {_ex}")
-        return None
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+        # Получаем имя последнего скачанного файла
+        info_dict = ydl.extract_info(url, download=False)
+        video_title = info_dict.get('title', None)
+        video_ext = info_dict.get('ext', 'mp4')
+        path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
+
+    video = open(path, 'rb')
+    return video, path  # Возвращаем путь к видео
 
 def delete_all_videos_in_directory():
     """Удаляет все скаченные видео из папки 'videos'"""
@@ -63,13 +66,15 @@ def get_files(message):
         bot.send_message(message.chat.id, "Начинаю обработку плейлиста...")
         writes_logs("Начинается обработка плейлиста")
 
-        playlist = yt_dlp.YoutubeDL().extract_info(message.text, download=False)  # Получаем информацию о плейлисте
-        for video in playlist['entries']:
+        playlist = Playlist(message.text)
+
+        for url in playlist.video_urls:
             try:
-                url = video['url']
-                video_file = create_video(url)
-                if video_file:
-                    bot.send_video(message.chat.id, video_file)
+                video, path = create_video(url)
+                if video:
+                    bot.send_video(message.chat.id, video)
+                    video.close()  # Закрываем файл
+                    os.remove(path)  # Удаляем файл после отправки
                 else:
                     bot.send_message(message.chat.id, "Не удалось скачать видео.")
             except Exception as _ex:
@@ -84,9 +89,11 @@ def get_files(message):
 
         try:
             url = message.text
-            video_file = create_video(url)
-            if video_file:
-                bot.send_video(message.chat.id, video_file)
+            video, path = create_video(url)
+            if video:
+                bot.send_video(message.chat.id, video)
+                video.close()  # Закрываем файл
+                os.remove(path)  # Удаляем файл после отправки
             else:
                 bot.send_message(message.chat.id, "Не удалось скачать видео.")
         except Exception as _ex:
