@@ -19,6 +19,16 @@ def clean_filename(filename):
     """Очищает имя файла от нежелательных символов"""
     return re.sub(r'[<>:"/\\|?*]', '_', filename)
 
+def rename_files_in_directory():
+    """Переименовывает все mp4 файлы в директории 'videos'"""
+    for i, filename in enumerate(os.listdir('videos')):
+        if filename.endswith('.mp4'):
+            # Создаем новое имя файла
+            new_name = f'video_{i + 1}_.mp4'  # Переименовываем по порядку
+            original_path = os.path.join('videos', filename)
+            new_path = os.path.join('videos', new_name)
+            os.rename(original_path, new_path)  # Переименовываем файл
+
 def create_video(url):
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',  # Выбор наилучшего качества
@@ -30,25 +40,25 @@ def create_video(url):
         # Загружаем видео
         ydl.download([url])
 
+    # Переименовываем файлы после загрузки
+    rename_files_in_directory()
+
     # Получаем информацию о скачанном видео
     info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False)
 
-    # Проверяем, успешно ли получена информация
     video_title = clean_filename(info_dict.get('title', 'video'))
     video_ext = 'mp4'  # Устанавливаем фиксированное расширение mp4
 
     # Полный путь к скачанному видео
-    original_path = f'videos/{video_title}.{video_ext}'  
     new_path = f'videos/{video_title}_.{video_ext}'  # Новый путь с заменой '?'
 
-    # Переименовываем файл, если нужно
-    if os.path.exists(original_path):
-        os.rename(original_path, new_path)  # Переименовываем в новый путь
+    # Проверяем, существует ли файл с новым именем
+    if os.path.exists(new_path):
         video = open(new_path, 'rb')
         return video, new_path  # Возвращаем новый путь к видео
     else:
-        writes_logs(f"Файл не найден: {original_path}")
-        return None, original_path
+        writes_logs(f"Файл не найден: {new_path}")
+        return None, new_path
 
 def delete_all_videos_in_directory():
     """Удаляет все скаченные видео из папки 'videos'"""
