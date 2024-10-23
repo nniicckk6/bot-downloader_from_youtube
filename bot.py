@@ -25,9 +25,15 @@ def create_video(url):
     """Скачивает видео и открывает файл на бинарное чтение"""
     try:
         yt = YouTube(url)
-        path = yt.download("videos")  # Скачиваем видео в папку 'videos'
-        video = open(path, 'rb')  # Открываем файл на чтение
-        return video
+        streams = yt.streams\
+    .filter(progressive=True, file_extension='mp4', resolution='720p')\
+    .order_by('resolution')
+        video = streams[-1]
+        print('Stream url:', video.url)
+        path = video.download("videos")
+        
+        videoo = open(path, 'rb')  # Открываем файл на чтение
+        return videoo
     except Exception as _ex:
         writes_logs(_ex)
         return None
