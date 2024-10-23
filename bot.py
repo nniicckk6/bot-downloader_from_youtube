@@ -21,26 +21,26 @@ def writes_logs(_ex):
         file_log.write('\n' + str(datetime.datetime.now()) + ': ' + str(_ex))
 
 
-def create_audio(url):
-    """Скачивает и открывает файл на бинарное чтение"""
+def create_video(url):
+    """Скачивает видео и открывает файл на бинарное чтение"""
     try:
-        yt = YouTube(url).streams.filter(only_audio=True).first()
-        path = yt.download("music")
-        with open(path, 'rb') as audio:
-            return audio
+        yt = YouTube(url).streams.filter(progressive=True, file_extension='mp4').first()
+        path = yt.download("videos")  # Скачиваем видео в папку 'videos'
+        video = open(path, 'rb')  # Открываем файл на чтение
+        return video
     except Exception as _ex:
         writes_logs(_ex)
         return None
 
 
-def delete_all_music_in_directory():
-    """Удаляет все скаченные аудио из папки 'music'"""
-    if not os.path.exists('music'):
-        os.mkdir('music')
-    for file in os.listdir('music'):
+def delete_all_videos_in_directory():
+    """Удаляет все скаченные видео из папки 'videos'"""
+    if not os.path.exists('videos'):
+        os.mkdir('videos')
+    for file in os.listdir('videos'):
         try:
             if re.search('mp4', file):
-                mp4_path = os.path.join('music', file)
+                mp4_path = os.path.join('videos', file)
                 os.remove(mp4_path)
         except Exception as _ex:
             writes_logs(_ex)
@@ -67,9 +67,9 @@ def get_files(message):
 
         for url in playlist.video_urls:
             try:
-                audio = create_audio(url)
-                if audio:
-                    bot.send_audio(message.chat.id, audio)
+                video = create_video(url)
+                if video:
+                    bot.send_video(message.chat.id, video)
             except Exception as _ex:
                 writes_logs(_ex)
                 bot.send_message(message.chat.id, f"Ошибка при скачивании видео: {_ex}")
@@ -81,9 +81,9 @@ def get_files(message):
         
         try:
             url = message.text
-            audio = create_audio(url)
-            if audio:
-                bot.send_audio(message.chat.id, audio)
+            video = create_video(url)
+            if video:
+                bot.send_video(message.chat.id, video)
         except Exception as _ex:
             writes_logs(_ex)
             bot.send_message(message.chat.id, f"Ошибка при скачивании видео: {_ex}")
@@ -92,5 +92,5 @@ def get_files(message):
         writes_logs(f"Не удалось распознать ссылку: {message.text}")
 
 
-delete_all_music_in_directory()
+delete_all_videos_in_directory()
 bot.infinity_polling()
