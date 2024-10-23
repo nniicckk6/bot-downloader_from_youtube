@@ -1,10 +1,7 @@
-# System
 import re
 import os
 import datetime
 from config import TOKEN
-
-# Add app
 import telebot
 from pytube import YouTube
 from pytube import Playlist
@@ -12,13 +9,16 @@ import yt_dlp
 
 # Token in config.py
 token = TOKEN
-
 bot = telebot.TeleBot(token)
 
 def writes_logs(_ex):
     """Записывает логи в файл 'logs.log', в котором будет время и ошибка"""
     with open('logs.log', 'a') as file_log:
         file_log.write('\n' + str(datetime.datetime.now()) + ': ' + str(_ex))
+
+def clean_filename(filename):
+    """Очищает имя файла от нежелательных символов"""
+    return re.sub(r'[<>:"/\\|?*]', '_', filename)
 
 def create_video(url):
     ydl_opts = {
@@ -29,14 +29,19 @@ def create_video(url):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
-        # Получаем имя последнего скачанного файла
+        # Получаем информацию о скачанном видео
         info_dict = ydl.extract_info(url, download=False)
-        video_title = info_dict.get('title', None)
+        video_title = clean_filename(info_dict.get('title', 'video'))
         video_ext = info_dict.get('ext', 'mp4')
         path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
 
-    video = open(path, 'rb')
-    return video, path  # Возвращаем путь к видео
+    # Проверяем, существует ли файл
+    if os.path.exists(path):
+        video = open(path, 'rb')
+        return video, path  # Возвращаем путь к видео
+    else:
+        writes_logs(f"Файл не найден: {path}")
+        return None, path
 
 def delete_all_videos_in_directory():
     """Удаляет все скаченные видео из папки 'videos'"""
@@ -44,7 +49,7 @@ def delete_all_videos_in_directory():
         os.mkdir('videos')
     for file in os.listdir('videos'):
         try:
-            if re.search('mp4', file):
+            if re.search(r'\.mp4$', file):  # Проверяем расширение
                 mp4_path = os.path.join('videos', file)
                 os.remove(mp4_path)
         except Exception as _ex:
@@ -58,7 +63,6 @@ def send_welcome(message):
 @bot.message_handler(content_types=['text'])
 def get_files(message):
     """Ждёт от пользователя ссылку на ютуб плейлист или видео и начинает его скачивать, и отравляет пользователю"""
-    # Логируем ссылку для отладки
     writes_logs(f"Получена ссылка: {message.text}")
 
     if re.match(r'https://www\.youtube\.com/playlist\?list=', message.text):
