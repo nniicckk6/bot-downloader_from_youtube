@@ -22,15 +22,21 @@ def clean_filename(filename):
 def create_video(url):
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',  # Выбор наилучшего качества
-        'outtmpl': 'videos/%(title)s.%(ext)s',  # Шаблон для имени файла
         'merge_output_format': 'mp4',  # Слияние аудио и видео в mp4
+        'outtmpl': 'videos/%(title)s.%(ext)s',  # Шаблон для имени файла
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         # Получаем информацию о скачанном видео
         info_dict = ydl.extract_info(url, download=False)
-        video_title = clean_filename(info_dict.get('title', 'video'))
-        video_ext = info_dict.get('ext', 'mp4')
+        
+        # Проверяем, успешно ли получена информация
+        if 'title' not in info_dict or 'ext' not in info_dict:
+            writes_logs(f"Не удалось получить информацию о видео: {url}")
+            return None, None
+        
+        video_title = clean_filename(info_dict['title'])
+        video_ext = info_dict['ext']
 
         # Заменяем имя файла перед скачиванием
         path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
