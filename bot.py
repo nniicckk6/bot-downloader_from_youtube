@@ -8,6 +8,7 @@ from config import TOKEN
 import telebot
 from pytube import YouTube
 from pytube import Playlist
+import ytdlp
 
 # Token in config.py
 token = TOKEN
@@ -22,28 +23,16 @@ def writes_logs(_ex):
 
 
 def create_video(url):
-    """Скачивает видео и открывает файл на бинарное чтение"""
-    try:
-        yt = YouTube(url)
-        writes_logs(f"Заголовок видео: {yt.title}")
+    ydl_opts = {
+        'format': 'best',  # Выбор наилучшего качества
+        'outtmpl': 'videos/%(title)s.%(ext)s',  # Шаблон для имени файла
+    }
 
-        # Получение потоков
-        streams = yt.streams.filter(progressive=True, file_extension='mp4')
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
 
-        if not streams:
-            writes_logs(f"Ошибка: отсутствуют доступные потоки для видео {url}")
-            return None
-
-        # Отбор потоков по разрешению, если вы хотите 720p, но это может быть не обязательно
-        video = streams.get_highest_resolution()  # Получаем поток с самым высоким разрешением
-        writes_logs(f"Выбранный поток: {video}")
-
-        path = video.download("videos")
-        video_file = open(path, 'rb')  # Открываем файл на чтение
-        return video_file
-    except Exception as _ex:
-        writes_logs(f"Ошибка при создании видео: {url} - {_ex}")
-        return None
+    video = open(path, 'rb')
+    return videoo
 
 
 def delete_all_videos_in_directory():
