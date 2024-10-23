@@ -3,7 +3,6 @@ import os
 import datetime
 from config import TOKEN
 import telebot
-from pytube import YouTube
 from pytube import Playlist
 import yt_dlp
 
@@ -28,12 +27,17 @@ def create_video(url):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
         # Получаем информацию о скачанном видео
         info_dict = ydl.extract_info(url, download=False)
         video_title = clean_filename(info_dict.get('title', 'video'))
         video_ext = info_dict.get('ext', 'mp4')
+
+        # Заменяем имя файла перед скачиванием
         path = f'videos/{video_title}.{video_ext}'  # Полный путь к видео
+        ydl_opts['outtmpl'] = path  # Обновляем путь в опциях для загрузки
+
+        # Загружаем видео
+        ydl.download([url])
 
     # Проверяем, существует ли файл
     if os.path.exists(path):
