@@ -24,7 +24,7 @@ def writes_logs(_ex):
 def create_video(url):
     """Скачивает видео и открывает файл на бинарное чтение"""
     try:
-        yt = YouTube(url).streams.filter(progressive=True, file_extension='mp4').first()
+        yt = YouTube(url)
         path = yt.download("videos")  # Скачиваем видео в папку 'videos'
         video = open(path, 'rb')  # Открываем файл на чтение
         return video
